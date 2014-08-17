@@ -1,6 +1,5 @@
 (function() {
-  var api = 'http' + (location.hostname === 'localhost' ? '://localhost:3000' : 's://offline-todo-api.herokuapp.com') + '/todos';
-  var synchronizeInProgress, willSynchronizePromise, db, input, ul;
+  var db, input, ul;
 
   databaseOpen()
     .then(function() {
@@ -9,12 +8,7 @@
       document.body.addEventListener('submit', onSubmit);
       document.body.addEventListener('click', onClick);
     })
-    .then(refreshView)
-    .then(synchronize)
-    .then(function() {
-      var source = new EventSource(api+'/stream');
-      source.addEventListener('message', synchronize);
-    });
+    .then(refreshView);
 
   function onClick(e) {
     if (e.target.hasAttribute('id')) {
@@ -33,8 +27,7 @@
     var todo = { text: input.value, _id: String(Date.now()) };
     input.value = '';
     databaseTodosPut(todo)
-      .then(refreshView)
-      .then(synchronize);
+      .then(refreshView);
   }
 
   function renderAllTodos(todos) {
@@ -51,64 +44,6 @@
 
   function refreshView() {
     return databaseTodosGet({ deleted: false }).then(renderAllTodos);
-  }
-
-  function synchronize() {
-    if (synchronizeInProgress) {
-      if (!willSynchronizePromise) {
-        willSynchronizePromise = new Promise(function(resolve, reject) {
-          document.body.addEventListener('synchronized', function onSynchronized() {
-            willSynchronizePromise = undefined;
-            document.body.removeEventListener('synchronized', onSynchronized);
-            resolve();
-          });
-        }).then(synchronize);
-      }
-      return willSynchronizePromise;
-    }
-    synchronizeInProgress = true;
-    return Promise.all([serverTodosGet(), databaseTodosGet()])
-      .then(function(results) {
-        var promises = [];
-        var remoteTodos = results[0].body;
-        var localTodos = results[1];
-
-        // Loop through local todos and if they haven't been
-        // posted to the server, post them.
-        promises = promises.concat(localTodos.map(function(todo) {
-          var deleteTodo = function() {
-            return databaseTodosDelete(todo);
-          };
-
-          // Has it been marked for deletion?
-          if (todo.deleted) {
-            return serverTodosDelete(todo).then(deleteTodo);
-          }
-
-          // Create the todo on the remote server, or if it already exists quietly
-          // don't do anything, or if it's deleted remotely deleted it locally
-          return serverTodosPut(todo)
-            .catch(function(res) {
-              if (res.status === 410) return deleteTodo();
-            });
-        }));
-
-        // Go through the todos that came down from the server,
-        // we don't already have one, add it to the local db
-        promises = promises.concat(remoteTodos.map(function(todo) {
-          if (!localTodos.some(function(localTodo) { return localTodo._id === todo._id; })) {
-            return databaseTodosPut(todo);
-          }
-        }));
-        return Promise.all(promises);
-    }, function(err) {
-      console.error(err, "Cannot connect to server");
-    })
-    .then(refreshView)
-    .then(function() {
-      synchronizeInProgress = false;
-      document.body.dispatchEvent(new Event('synchronized'));
-    });
   }
 
   function databaseOpen() {
@@ -188,37 +123,6 @@
       var request = store.delete(todo._id);
       request.onsuccess = resolve;
       request.onerror = reject;
-    });
-  }
-
-  function serverTodosGet(_id) {
-    return new Promise(function(resolve, reject) {
-      superagent.get(api+'/' + (_id ? _id : ''))
-        .end(function(err, res) {
-          if (!err && res.ok) resolve(res);
-          else reject(res);
-        });
-    });
-  }
-
-  function serverTodosPut(todo) {
-    return new Promise(function(resolve, reject) {
-      superagent.put(api+'/'+todo._id)
-        .send(todo)
-        .end(function(res) {
-          if (res.ok) resolve(res);
-          else reject(res);
-        });
-    });
-  }
-
-  function serverTodosDelete(todo) {
-    return new Promise(function(resolve, reject) {
-      superagent.del(api+'/'+todo._id)
-        .end(function(res) {
-          if (res.ok) resolve();
-          else reject();
-        });
     });
   }
 }());

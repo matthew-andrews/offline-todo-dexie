@@ -2,7 +2,6 @@ CACHE MANIFEST
 ./styles.css
 ./indexeddb.shim.min.js
 ./promise.js
-./superagent.js
 ./application.js
 
 NETWORK:
