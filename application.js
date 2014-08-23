@@ -23,9 +23,11 @@
   function onSubmit(e) {
     e.preventDefault();
     var todo = { text: input.value, _id: String(Date.now()) };
-    input.value = '';
     databaseTodosPut(todo)
-      .then(refreshView);
+      .then(function() {
+        input.value = '';
+        return refreshView();
+      });
   }
 
   function renderAllTodos(todos) {
