@@ -73,19 +73,6 @@
     });
   }
 
-  function databaseTodosGetById(id) {
-    return new Promise(function(resolve, reject) {
-      var transaction = db.transaction(['todo'], 'readwrite');
-      var store = transaction.objectStore('todo');
-      var request = store.get(id);
-      request.onsuccess = function(e) {
-        var result = e.target.result;
-        resolve(result);
-      };
-      request.onerror = reject;
-    });
-  }
-
   function databaseTodosGet() {
     return new Promise(function(resolve, reject) {
       var transaction = db.transaction(['todo'], 'readwrite');
@@ -111,6 +98,19 @@
           resolve(data);
         }
       };
+    });
+  }
+
+  function databaseTodosGetById(id) {
+    return new Promise(function(resolve, reject) {
+      var transaction = db.transaction(['todo'], 'readwrite');
+      var store = transaction.objectStore('todo');
+      var request = store.get(id);
+      request.onsuccess = function(e) {
+        var result = e.target.result;
+        resolve(result);
+      };
+      request.onerror = reject;
     });
   }
 
