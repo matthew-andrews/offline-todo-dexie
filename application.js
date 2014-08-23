@@ -12,7 +12,7 @@
 
   function onClick(e) {
     if (e.target.hasAttribute('id')) {
-      databaseTodosGetByLocalId(e.target.getAttribute('id'))
+      databaseTodosGetById(e.target.getAttribute('id'))
         .then(function(todo) {
           return databaseTodosDelete(todo);
         })
@@ -73,7 +73,7 @@
     });
   }
 
-  function databaseTodosGetByLocalId(id) {
+  function databaseTodosGetById(id) {
     return new Promise(function(resolve, reject) {
       var transaction = db.transaction(['todo'], 'readwrite');
       var store = transaction.objectStore('todo');
