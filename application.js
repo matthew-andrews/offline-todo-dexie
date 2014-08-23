@@ -30,6 +30,10 @@
       });
   }
 
+  function refreshView() {
+    return databaseTodosGet().then(renderAllTodos);
+  }
+
   function renderAllTodos(todos) {
     var html = '';
     todos.forEach(function(todo) {
@@ -40,10 +44,6 @@
 
   function todoToHtml(todo) {
     return '<li><button id="'+todo._id+'">delete</button>'+todo.text+'</li>';
-  }
-
-  function refreshView() {
-    return databaseTodosGet().then(renderAllTodos);
   }
 
   function databaseOpen() {
