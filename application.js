@@ -26,8 +26,8 @@
     databaseTodosPut(todo)
       .then(function() {
         input.value = '';
-        return refreshView();
-      });
+      })
+      .then(refreshView);
   }
 
   function refreshView() {
