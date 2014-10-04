@@ -1,13 +1,13 @@
 (function() {
-  var db = new Dexie("todos-dexie"), input, ul;
+  var db = new Dexie("todos-dexie");
+  var input = document.querySelector('input');
+  var ul = document.querySelector('ul');
+  document.body.addEventListener('submit', onSubmit);
+  document.body.addEventListener('click', onClick);
+
   db.version(1).stores({ todo: '_id' })
   db.open()
     .then(refreshView);
-
-  input = document.querySelector('input');
-  ul = document.querySelector('ul');
-  document.body.addEventListener('submit', onSubmit);
-  document.body.addEventListener('click', onClick);
 
   function onClick(e) {
     e.preventDefault();
@@ -41,5 +41,4 @@
   function todoToHtml(todo) {
     return '<li><button id="'+todo._id+'">delete</button>'+todo.text+'</li>';
   }
-
 }());
