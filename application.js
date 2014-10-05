@@ -27,7 +27,8 @@
   }
 
   function refreshView() {
-    return db.todo.toArray().then(renderAllTodos);
+    return db.todo.toArray()
+      .then(renderAllTodos);
   }
 
   function renderAllTodos(todos) {
